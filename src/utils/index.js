@@ -1,8 +1,12 @@
 const fs = require('fs');
 const path = require('path');
+const flags = require('flags');
 
 const loadInputString = (dirPath) => {
-  const result = fs.readFileSync(path.join(dirPath, '/input.txt'), 'utf8');
+  const testingMode = flags.get('t');
+
+  const fileName = testingMode ? '/test.txt' : 'input.txt';
+  const result = fs.readFileSync(path.join(dirPath, fileName), 'utf8');
 
   if (result.charCodeAt(result.length - 1) === 10) {
     return result.slice(0, result.length - 1);
