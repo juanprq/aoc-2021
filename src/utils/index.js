@@ -23,7 +23,7 @@ const loadInput = (dirPath, separator = '\n') => {
 const print2DMatrix = (matrix) => {
   for (let i = 0; i < matrix.length; i++) {
     for (let j = 0; j < matrix[0].length; j++) {
-      process.stdout.write(matrix[i][j]);
+      process.stdout.write(matrix[i][j].toString());
     }
 
     process.stdout.write('\n');
