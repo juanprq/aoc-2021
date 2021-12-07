@@ -1,6 +1,5 @@
 const utils = require('../utils');
 
-
 module.exports = () => {
   let [data] = utils
     .loadInput(__dirname)
