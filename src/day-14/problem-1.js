@@ -1,14 +1,5 @@
 const utils = require('../utils');
 
-const mergeResults = (resultA, resultB) => {
-    const result = Object
-      .keys(resultA)
-      .reduce((accum, key) => {
-        return { ...accum, [key]: (resultA[key] || 0) + (resultB[key] || 0) };
-      }, {});
-
-  return result;
-}
 
 module.exports = () => {
   let [input, ...rules] = utils
@@ -18,42 +9,99 @@ module.exports = () => {
     .map(rule => rule.split(' -> '))
     .reduce((accum, [pair, center]) => ({ ...accum, [pair]: center }), {});
 
+  const space = [...new Set([...Object.values(rules)])];
+  const initialCount = space
+    .reduce((accum, key) => ({ ...accum, [key]: [0] }), {});
+
   const cache = Object
     .keys(rules)
     .reduce((accum, key) => {
       return { ...accum, [key]: [] };
     }, {});
 
-  // returns a count map of elements
-  const iterate = (a, b, n) => {
-    const key = a + b;
-    if (cache[key][n]) return cache[a + b][n]
-    if (n === 0) {
-      return { [a]: 1, [b]: 1 };
-    }
+  const mergeResults = (resultA, resultB) => {
+      const result = Object
+        .keys(resultA)
+        .reduce((accum, key) => {
+          return { ...accum, [key]: Number(resultA[key]) + Number(resultB[key]) };
+        }, { ...initialCount });
 
-    const middle = rules[key];
-    const leftResult = iterate(a, middle, n - 1);
-    const rightResult = iterate(b, middle, n - 1);
-    const result = mergeResults(leftResult, rightResult);
-
-    cache[key][n] = result;
     return result;
   }
 
-  const iterations = 10;
+  const totalIterations = 40;
 
-  let results = {};
+  // returns a count map of elements
+  const subIterate = (a, b, middle, n) => {
+    if (n === totalIterations + 1) return { ...initialCount };
+    if (cache[a + b][n]) return cache[a + b][n];
+    const keyA = a + middle;
+    const keyB = middle + b;
+
+    let count = { ...initialCount, [middle]: 1 };
+    count = mergeResults(subIterate(a, middle, rules[keyA], n + 1), count);
+    count = mergeResults(subIterate(middle, b, rules[keyB], n + 1), count);
+
+    cache[a + b][n] = count;
+
+    return count;
+  }
+
+  const iterate = (a, b) => {
+    const key = a + b;
+    const initial = [a, b].reduce((accum, key) => {
+      accum[key]++;
+      return accum;
+    }, { ...initialCount });
+
+    const result = subIterate(a, b, rules[key], 1);
+    // return mergeResults(result, initial);
+    return result;
+
+    // const key = a + b;
+    // if (cache[key][n]) return cache[a + b][n]
+    // if (n === totalIterations) {
+    //   return [a, b].reduce((accum, key) => {
+    //     accum[key]++;
+    //     return accum;
+    //   }, { ...initialCount });
+    // }
+
+    // const middle = rules[key];
+
+    // const leftResult = iterate(a, middle, n + 1);
+    // const rightResult = iterate(b, middle, n + 1);
+    // let result = mergeResults(leftResult, rightResult);
+    // result = mergeResults()
+
+    // cache[key][n] = result;
+    // return result;
+  }
+
+  // const iterations = 10;
+
+  let results = input
+    .split('')
+    .reduce((accum, key) => {
+      accum[key]++;
+      return accum;
+    }, { ...initialCount });
   for (let j = 0; j < input.length - 1; j++) {
     const a = input[j];
     const b = input[j + 1];
 
-    results = mergeResults(results, iterate(a, b, iterations));
+    results = mergeResults(results, iterate(a, b));
   }
 
   console.log(results);
 
-  return 0;
+  results = Object
+    .values(results)
+    .sort((a, b) => a - b);
+  const result = results[results.length - 1] - results[0];
+  console.log(results);
+
+  return result;
 
   // for (let i = 0; i < iterations; i++) {
 
@@ -86,4 +134,4 @@ module.exports = () => {
   // return results[results.length - 1] - results[0];
 };
 
-module.exports.expectedValue = 1588;
+module.exports.expectedValue =  2188189693529;
